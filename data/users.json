@@ -1,0 +1,22 @@
+{
+  "S1001": {
+    "name": "Bhavy Patel",
+    "role": "student",
+    "pin_hash": "5c13e85509381523557db0f880c26c23b7d5f75fb5e3d1c74e5030a22b34e21d"
+  },
+  "S1002": {
+    "name": "Aarav Shah",
+    "role": "student",
+    "pin_hash": "859893919807b07e096020bdb602feca7330cbc2365fc1a6cca0ea80638b02cd"
+  },
+  "S1003": {
+    "name": "Meera Iyer",
+    "role": "student",
+    "pin_hash": "8539af573be1a628f97bb666ee2f665283b92677ce429c3bfad4f967546fc413"
+  },
+  "STAFF01": {
+    "name": "Registrar Office",
+    "role": "staff",
+    "pin_hash": "71d7f2091e414f1ade9025397c1a4bc94ab71f6b5af0edf95d150a5e01b912ad"
+  }
+}

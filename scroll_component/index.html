@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"></head>
+<body style="margin:0">
+<script>
+// 1) Fits the chat/transcript box to the space left in the window, so the PAGE never scrolls.
+// 2) Keeps the newest message visible inside that box.
+const win = window.parent, doc = window.parent.document;
+
+function mainScroller() {
+  return doc.querySelector('[data-testid="stAppScrollToBottomContainer"]') || doc.querySelector('[data-testid="stMain"]');
+}
+function boxes() {
+  const out = [];
+  doc.querySelectorAll('.chat-anchor').forEach(function (a) {
+    let box = a;
+    while (box && box.getAttribute('data-testid') !== 'stVerticalBlock') box = box.parentElement;
+    if (box) out.push(box);
+  });
+  return out;
+}
+function fit() {
+  try {
+    const sc = mainScroller(), bar = doc.querySelector('[data-testid="stBottom"]');
+    const barH = bar ? bar.getBoundingClientRect().height : 0;
+    boxes().forEach(function (box) {
+      const top = box.getBoundingClientRect().top + (sc ? sc.scrollTop : 0);
+      const h = Math.max(260, Math.floor(win.innerHeight - top - barH - 62));
+      [box, box.parentElement].forEach(function (e) {
+        if (!e) return;
+        e.style.setProperty('height', h + 'px', 'important');
+        e.style.setProperty('flex', '0 0 ' + h + 'px', 'important');
+        e.style.setProperty('max-height', 'none', 'important');
+      });
+    });
+    if (sc && sc.scrollHeight <= sc.clientHeight + 40) sc.scrollTop = 0;
+  } catch (e) {}
+}
+function scrollChat() {
+  try {
+    boxes().forEach(function (box) {
+      const oy = win.getComputedStyle(box).overflowY;
+      if ((oy === 'auto' || oy === 'scroll') && box.scrollHeight > box.clientHeight + 4) box.scrollTop = box.scrollHeight;
+    });
+  } catch (e) {}
+}
+function run() { fit(); scrollChat(); }
+
+if (!win.__aidtmFitBound) { win.__aidtmFitBound = true; win.addEventListener("resize", function () { fit(); }); }
+window.addEventListener("message", function (event) {
+  if (event.data && event.data.type === "streamlit:render") { run(); setTimeout(run, 150); setTimeout(run, 500); }
+});
+window.parent.postMessage({ isStreamlitMessage: true, type: "streamlit:componentReady", apiVersion: 1 }, "*");
+window.parent.postMessage({ isStreamlitMessage: true, type: "streamlit:setFrameHeight", height: 0 }, "*");
+</script>
+</body></html>

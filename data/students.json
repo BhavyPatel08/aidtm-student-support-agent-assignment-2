@@ -1,0 +1,92 @@
+{
+  "S1001": {
+    "id": "S1001",
+    "name": "Bhavy Patel",
+    "programme": "PGDM Big Data Analytics",
+    "batch": "2025-27",
+    "email": "bhavy.patel@example.edu",
+    "phone": "+91 90000 00001",
+    "fees": {
+      "total": 1000000,
+      "paid": 600000,
+      "outstanding": 400000,
+      "next_installment": {
+        "number": 3,
+        "amount": 200000,
+        "due_date": "2026-11-15"
+      },
+      "status": "Installment 3 pending"
+    },
+    "scholarship": {
+      "name": "Merit Scholarship",
+      "status": "Approved",
+      "amount": 100000,
+      "note": "Adjusted against the 4th installment"
+    },
+    "courses": [
+      "Machine Learning",
+      "Cloud Computing",
+      "HR Analytics"
+    ]
+  },
+  "S1002": {
+    "id": "S1002",
+    "name": "Aarav Shah",
+    "programme": "PGDM Artificial Intelligence & Data Science",
+    "batch": "2025-27",
+    "email": "aarav.shah@example.edu",
+    "phone": "+91 90000 00002",
+    "fees": {
+      "total": 1000000,
+      "paid": 600000,
+      "outstanding": 400000,
+      "next_installment": {
+        "number": 3,
+        "amount": 200000,
+        "due_date": "2026-11-15"
+      },
+      "status": "Paid up to date"
+    },
+    "scholarship": {
+      "name": "Need-based Scholarship",
+      "status": "Under review",
+      "amount": 0,
+      "note": "Decision expected in 3 weeks"
+    },
+    "courses": [
+      "Deep Learning",
+      "Cloud Computing",
+      "Business Analytics"
+    ]
+  },
+  "S1003": {
+    "id": "S1003",
+    "name": "Meera Iyer",
+    "programme": "PGDM Big Data Analytics",
+    "batch": "2025-27",
+    "email": "meera.iyer@example.edu",
+    "phone": "+91 90000 00003",
+    "fees": {
+      "total": 1000000,
+      "paid": 400000,
+      "outstanding": 600000,
+      "next_installment": {
+        "number": 2,
+        "amount": 200000,
+        "due_date": "2026-09-15"
+      },
+      "status": "Installment 2 overdue"
+    },
+    "scholarship": {
+      "name": "None",
+      "status": "Not applied",
+      "amount": 0,
+      "note": ""
+    },
+    "courses": [
+      "Machine Learning",
+      "Data Visualization",
+      "HR Analytics"
+    ]
+  }
+}

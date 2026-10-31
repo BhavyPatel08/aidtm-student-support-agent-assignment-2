@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  :root { --text:#1F2937; --muted:#6B7280; --card:#FFFFFF; --line:#E5E7EB; --green:#16A34A; --red:#DC2626; --primary:#4F46E5; }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif; margin: 0; padding: 4px; color: var(--text); background: transparent; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 22px 18px 18px; text-align: center;
+          box-shadow: 0 1px 3px rgba(16,24,40,.06); }
+  .ring { width: 104px; height: 104px; margin: 4px auto 12px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+          background: rgba(22,163,74,.12); transition: background .2s; }
+  .active .ring { background: rgba(220,38,38,.12); animation: pulse 1.6s infinite; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(220,38,38,.35);} 70% { box-shadow: 0 0 0 20px rgba(220,38,38,0);} 100% { box-shadow: 0 0 0 0 rgba(220,38,38,0);} }
+  #callBtn { width: 76px; height: 76px; border-radius: 50%; border: none; cursor: pointer; font-size: 30px; color: #fff;
+             background: var(--green); box-shadow: 0 6px 16px rgba(22,163,74,.35); transition: transform .1s, background .2s; }
+  #callBtn:hover { transform: scale(1.05); }
+  .active #callBtn { background: var(--red); box-shadow: 0 6px 16px rgba(220,38,38,.35); }
+  #callBtn:disabled { background: #9CA3AF; box-shadow: none; cursor: not-allowed; transform: none; }
+  .title { font-weight: 700; font-size: 16px; }
+  .status { margin-top: 6px; font-size: 13px; color: var(--muted); min-height: 18px; }
+  .bubble { margin-top: 10px; padding: 8px 12px; border-radius: 12px; font-size: 13px; text-align: left; overflow-wrap: anywhere; }
+  .you { background: #EEF2FF; border: 1px solid #E0E7FF; }
+  .bot { background: #F3F4F6; border: 1px solid var(--line); }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="card" id="card">
+  <div class="ring"><button id="callBtn" title="Start / end call">📞</button></div>
+  <div class="title" id="title">Tap to start the call</div>
+  <div class="status" id="status">Ready</div>
+  <div class="bubble you" id="you" hidden></div>
+  <div class="bubble bot" id="bot" hidden></div>
+</div>
+<script>
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const card = document.getElementById("card"), btn = document.getElementById("callBtn");
+const titleEl = document.getElementById("title"), statusEl = document.getElementById("status");
+const youBox = document.getElementById("you"), botBox = document.getElementById("bot");
+
+let recognition = null, active = false, waiting = false, speaking = false, running = false;
+let eventId = Date.now();   // always increases, even after a page reload
+let answerId = -1, lastSent = "";
+
+function ui() {
+  card.classList.toggle("active", active);
+  btn.textContent = active ? "📵" : "📞";
+  titleEl.textContent = active ? "Call in progress" : "Tap to start the call";
+}
+function resize() {
+  let h = document.getElementById("card").offsetHeight + 14;
+  if (!h || h < 150) h = 240;               // never collapse the widget
+  window.parent.postMessage({ isStreamlitMessage: true, type: "streamlit:setFrameHeight", height: h }, "*");
+}
+function setStatus(t) { statusEl.textContent = t; ui(); resize(); }
+function send(type, text) {
+  const data = { id: ++eventId, type: type };
+  if (text) data.text = text;
+  window.parent.postMessage({ isStreamlitMessage: true, type: "streamlit:setComponentValue", value: data, dataType: "json" }, "*");
+}
+function stopSpeech() { if ("speechSynthesis" in window) speechSynthesis.cancel(); speaking = false; }
+function listen() { if (!recognition || !active || waiting || speaking || running) return; try { recognition.start(); } catch (e) {} }
+
+function endCall(notify) {
+  active = false; waiting = false; stopSpeech();
+  if (recognition) { try { recognition.stop(); } catch (e) {} }
+  setStatus("Call ended");
+  if (notify) send("stop");
+}
+
+if (SR) {
+  recognition = new SR();
+  recognition.lang = "en-IN"; recognition.continuous = true; recognition.interimResults = false;
+  recognition.onstart = () => { running = true; if (active && !waiting && !speaking) setStatus("🎙️ Listening... speak now"); };
+  recognition.onresult = (ev) => {
+    if (!active || waiting || speaking) return;
+    let text = "";
+    for (let i = ev.resultIndex; i < ev.results.length; i++)
+      if (ev.results[i].isFinal) text += ev.results[i][0].transcript + " ";
+    text = text.trim();
+    if (!text || text === lastSent) return;
+    lastSent = text; waiting = true;
+    youBox.hidden = false; youBox.textContent = "You: " + text; resize();
+    setStatus("🤖 Thinking...");
+    try { recognition.stop(); } catch (e) {}
+    send("question", text);
+  };
+  recognition.onerror = (ev) => {
+    if (!active) return;
+    if (ev.error === "not-allowed") { endCall(true); setStatus("Microphone blocked - allow it in the browser address bar"); return; }
+    if (ev.error === "audio-capture") { setStatus("No microphone found"); return; }
+    if (ev.error !== "no-speech" && ev.error !== "aborted") setStatus("Speech error: " + ev.error);
+  };
+  recognition.onend = () => { running = false; if (active && !waiting && !speaking) setTimeout(listen, 400); };
+} else {
+  btn.disabled = true; titleEl.textContent = "Voice not supported"; statusEl.textContent = "Please use Chrome or Edge.";
+}
+
+function speak(text) {
+  if (!active || !text || !("speechSynthesis" in window)) { waiting = false; if (active) setTimeout(listen, 400); return; }
+  stopSpeech();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "en-IN"; u.rate = 1; speaking = true; setStatus("🔊 Assistant is speaking...");
+  const done = () => { speaking = false; waiting = false; if (active) { setStatus("🎙️ Listening... ask your next question"); setTimeout(listen, 400); } };
+  u.onend = done; u.onerror = done;
+  speechSynthesis.speak(u);
+}
+
+btn.onclick = () => {
+  if (!recognition) return;
+  if (active) { endCall(true); return; }
+  active = true; waiting = false; lastSent = "";
+  youBox.hidden = true; botBox.hidden = true; resize();
+  setStatus("Connecting..."); send("start"); listen();
+};
+
+window.addEventListener("message", (event) => {
+  const data = event.data;
+  if (!data || data.type !== "streamlit:render") return;
+  resize();
+  const th = data.theme;
+  if (th) {
+    const r = document.documentElement.style;
+    if (th.textColor) r.setProperty("--text", th.textColor);
+    if (th.secondaryBackgroundColor) r.setProperty("--card", th.secondaryBackgroundColor);
+    if (th.primaryColor) r.setProperty("--primary", th.primaryColor);
+  }
+  const args = data.args || {};
+  if (typeof args.active === "boolean" && !args.active && active) endCall(false);
+  if (args.answer && args.answer_id !== undefined && args.answer_id !== answerId) {
+    answerId = args.answer_id;
+    botBox.hidden = false; botBox.textContent = "Assistant: " + args.answer; resize();
+    if (active) speak(args.answer);
+  }
+});
+
+ui();
+window.parent.postMessage({ isStreamlitMessage: true, type: "streamlit:componentReady", apiVersion: 1 }, "*");
+resize();
+setTimeout(resize, 300);
+if (window.ResizeObserver) new ResizeObserver(resize).observe(document.getElementById("card"));
+</script>
+</body>
+</html>
