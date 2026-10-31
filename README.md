@@ -5,8 +5,9 @@ PGDM (Big Data Analytics) Batch 2025-27
 
 | | Link |
 |---|---|
-| Explanatory video | _paste your video link here_ |
-| Assignment 1 repository (the agent this project continues) | _paste link here_ |
+| Explanatory video | https://drive.google.com/file/d/1j0ChQsafwr4r6Ek3sLdUiNzaLXe8PBIv/view?usp=sharing |
+| Assignment 1 repository (the agent this project continues) | https://github.com/BhavyPatel08/aidtm-student-support-agent-assignment-1.git
+ |
 
 > All students, fees and handbook text are **sample data** made for this assignment. No real data or credentials are in this repository.
 
