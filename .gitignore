@@ -1,0 +1,15 @@
+# secrets - NEVER commit
+.env
+*.key
+secrets.*
+
+# runtime data created while the app runs (memory, approvals, audit, traces, tickets)
+data/runtime/
+
+# python / tools
+__pycache__/
+*.pyc
+.pytest_cache/
+venv/
+.venv/
+.DS_Store
